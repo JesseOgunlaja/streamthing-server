@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "watchOptions": {
+    "watchFile": "fixedPollingInterval",
+    "watchDirectory": "fixedPollingInterval",
+    "synchronousWatchDirectory": true,
+    "excludeDirectories": ["node_modules"],
+    "excludeFiles": ["**/node_modules/*"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["src/types.d.ts"]
+}
