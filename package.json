@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node dist/server.js",
+    "watchStart": "nodemon dist/server.js",
     "tsc-watch": "tsc -w"
   },
   "author": "Jesse Ogunlaja",
@@ -17,8 +18,7 @@
     "hono": "^4.6.13",
     "node-cron": "^3.0.3",
     "nodemon": "^3.1.7",
-    "socket.io": "^4.8.1",
-    "socket.io-msgpack-parser": "^3.0.2"
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
