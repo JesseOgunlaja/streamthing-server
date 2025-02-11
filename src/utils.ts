@@ -8,10 +8,6 @@ export const redis = new Redis({
   token: process.env.REDIS_TOKEN,
 });
 
-export function encryptValue(data: unknown, secretKey: string) {
-  return CryptoJS.AES.encrypt(JSON.stringify(data), secretKey).toString();
-}
-
 export function decryptValue(value: string, secretKey: string) {
   const decrypted = CryptoJS.AES.decrypt(value, secretKey).toString(
     CryptoJS.enc.Utf8

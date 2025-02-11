@@ -7,7 +7,6 @@ import {
   UserType,
 } from "./types";
 import {
-  encryptValue,
   fetchServer,
   fetchUser,
   getInitialUsage,
@@ -131,8 +130,7 @@ export function setupSocketHandlers(appState: AppState) {
   });
 
   hono.post("/emit-event", async (c) => {
-    const { id, event, msg, channel, password, encryptionKey } =
-      await c.req.json();
+    const { id, event, msg, channel, password } = await c.req.json();
 
     if (!id || !event || !channel || !msg || !password) {
       return c.json({ message: "Invalid params" }, 422);
@@ -158,8 +156,7 @@ export function setupSocketHandlers(appState: AppState) {
     updateServerUsage(appState, server.id, "messages");
 
     const roomKey = hashString(`${id}-${channel}`);
-    const newMsg = encryptionKey ? encryptValue(msg, encryptionKey) : msg;
-    io.to(roomKey).emit(hashString(event), newMsg);
+    io.to(roomKey).emit(hashString(event), msg);
 
     return c.json({ message: "Event emitted successfully" });
   });
