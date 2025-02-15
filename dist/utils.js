@@ -13,47 +13,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.redis = void 0;
-exports.encryptValue = encryptValue;
-exports.decryptValue = decryptValue;
-exports.getRoundedTimestamp = getRoundedTimestamp;
 exports.hashString = hashString;
-exports.resetServerCache = resetServerCache;
-exports.resetUserCache = resetUserCache;
 exports.fetchFromCache = fetchFromCache;
 exports.updateServerUsage = updateServerUsage;
-exports.readID = readID;
 exports.getInitialUsage = getInitialUsage;
 exports.fetchUser = fetchUser;
 exports.fetchServer = fetchServer;
+exports.decodeJWT = decodeJWT;
 require("dotenv").config();
 const redis_1 = require("@upstash/redis");
 const crypto_js_1 = __importDefault(require("crypto-js"));
+const jose_1 = require("jose");
 exports.redis = new redis_1.Redis({
     url: process.env.REDIS_URL,
     token: process.env.REDIS_TOKEN,
 });
-function encryptValue(data, secretKey) {
-    return crypto_js_1.default.AES.encrypt(JSON.stringify(data), secretKey).toString();
-}
-function decryptValue(value, secretKey) {
-    const decrypted = crypto_js_1.default.AES.decrypt(value, secretKey).toString(crypto_js_1.default.enc.Utf8);
-    return JSON.parse(decrypted);
-}
-function getRoundedTimestamp() {
-    const now = Date.now();
-    const interval = 1000;
-    return (Math.floor(now / interval) * interval).toString();
-}
 function hashString(text) {
     return crypto_js_1.default.SHA256(text).toString();
-}
-function resetServerCache(state, id) {
-    const { serversCache } = state;
-    delete serversCache[`server-${id}`];
-}
-function resetUserCache(state, id) {
-    const { usersCache } = state;
-    delete usersCache[`user-${id}`];
 }
 function fetchFromCache(state, key, dataKey) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -81,15 +57,6 @@ function updateServerUsage(state, id, usageType, increment = 1) {
         serverUsage.maxMessageSize = increment;
     }
 }
-function readID(encryptedID) {
-    try {
-        const id = decryptValue(encryptedID, getRoundedTimestamp());
-        return id;
-    }
-    catch (_a) {
-        throw new Error("Invalid ID");
-    }
-}
 function getInitialUsage() {
     return {
         connections: 0,
@@ -108,5 +75,23 @@ function fetchUser(state, userEmail) {
 function fetchServer(state, serverID) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield fetchFromCache(state, "serversCache", `server-${serverID}`);
+    });
+}
+function decodeJWT(token, secret) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            if (secret) {
+                const secretBuffer = new TextEncoder().encode(secret);
+                const { payload } = yield (0, jose_1.jwtVerify)(token, secretBuffer);
+                return payload;
+            }
+            else {
+                return (0, jose_1.decodeJwt)(token);
+            }
+        }
+        catch (error) {
+            console.error("Error decoding JWT:", error);
+            return null;
+        }
     });
 }

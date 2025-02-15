@@ -1,6 +1,7 @@
 require("dotenv").config();
 import { Redis } from "@upstash/redis";
 import CryptoJS from "crypto-js";
+import { decodeJwt, jwtVerify } from "jose";
 import { AppState, Server, Usage, UserType } from "./types";
 
 export const redis = new Redis({
@@ -8,31 +9,8 @@ export const redis = new Redis({
   token: process.env.REDIS_TOKEN,
 });
 
-export function decryptValue(value: string, secretKey: string) {
-  const decrypted = CryptoJS.AES.decrypt(value, secretKey).toString(
-    CryptoJS.enc.Utf8
-  );
-  return JSON.parse(decrypted);
-}
-
-export function getRoundedTimestamp() {
-  const now = Date.now();
-  const interval = 1000;
-  return (Math.floor(now / interval) * interval).toString();
-}
-
 export function hashString(text: string) {
   return CryptoJS.SHA256(text).toString();
-}
-
-export function resetServerCache(state: AppState, id: string) {
-  const { serversCache } = state;
-  delete serversCache[`server-${id}`];
-}
-
-export function resetUserCache(state: AppState, id: string) {
-  const { usersCache } = state;
-  delete usersCache[`user-${id}`];
 }
 
 export async function fetchFromCache<T extends UserType | Server>(
@@ -72,15 +50,6 @@ export function updateServerUsage(
   }
 }
 
-export function readID(encryptedID: string) {
-  try {
-    const id = decryptValue(encryptedID, getRoundedTimestamp());
-    return id;
-  } catch {
-    throw new Error("Invalid ID");
-  }
-}
-
 export function getInitialUsage() {
   return {
     connections: 0,
@@ -104,4 +73,19 @@ export async function fetchServer(
   serverID: string
 ): Promise<Server> {
   return await fetchFromCache(state, "serversCache", `server-${serverID}`);
+}
+
+export async function decodeJWT(token: string, secret?: string) {
+  try {
+    if (secret) {
+      const secretBuffer = new TextEncoder().encode(secret);
+      const { payload } = await jwtVerify(token, secretBuffer);
+      return payload;
+    } else {
+      return decodeJwt(token);
+    }
+  } catch (error) {
+    console.error("Error decoding JWT:", error);
+    return null;
+  }
 }

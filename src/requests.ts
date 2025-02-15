@@ -1,10 +1,5 @@
 import { AppState } from "./types";
-import {
-  fetchServer,
-  getInitialUsage,
-  resetServerCache,
-  resetUserCache,
-} from "./utils";
+import { fetchServer, getInitialUsage } from "./utils";
 
 export function setupRequestHandlers(appState: AppState) {
   const { hono, usage } = appState;
@@ -39,4 +34,14 @@ export function setupRequestHandlers(appState: AppState) {
     resetUserCache(appState, id);
     return c.json({ message: "User cache reset" });
   });
+}
+
+function resetServerCache(state: AppState, id: string) {
+  const { serversCache } = state;
+  delete serversCache[`server-${id}`];
+}
+
+function resetUserCache(state: AppState, id: string) {
+  const { usersCache } = state;
+  delete usersCache[`user-${id}`];
 }

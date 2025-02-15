@@ -32,14 +32,22 @@ function setupRequestHandlers(appState) {
         const server = yield (0, utils_1.fetchServer)(appState, id);
         if (server.password !== c.req.header("Authorization"))
             return c.json({ message: "Unauthorized" }, 401);
-        (0, utils_1.resetServerCache)(appState, id);
+        resetServerCache(appState, id);
         return c.json({ message: "Server cache reset" });
     }));
     hono.post("/reset-user-cache/:id", (c) => __awaiter(this, void 0, void 0, function* () {
         const id = c.req.param("id");
         if (!id)
             return c.json({ message: "Invalid params" }, 422);
-        (0, utils_1.resetUserCache)(appState, id);
+        resetUserCache(appState, id);
         return c.json({ message: "User cache reset" });
     }));
+}
+function resetServerCache(state, id) {
+    const { serversCache } = state;
+    delete serversCache[`server-${id}`];
+}
+function resetUserCache(state, id) {
+    const { usersCache } = state;
+    delete usersCache[`user-${id}`];
 }
