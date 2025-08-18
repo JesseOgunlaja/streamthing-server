@@ -2,12 +2,12 @@
   "name": "websocket-server",
   "version": "1.0.0",
   "description": "A websocket server built with fastify",
-  "main": "server.js",
+  "main": "server/index.js",
   "scripts": {
-    "start": "node dist/server.js",
-    "watchStart": "powershell nodemon dist/server.js",
-    "tsc-watch": "tsc -w"
+    "start": "node server/index.js",
+    "watchStart": "nodemon server/index.js"
   },
+  "type": "module",
   "author": "Jesse Ogunlaja",
   "license": "ISC",
   "dependencies": {
@@ -19,11 +19,8 @@
     "jose": "^5.9.6",
     "node-cron": "^3.0.3",
     "nodemon": "^3.1.7",
-    "socket.io": "^4.8.1"
-  },
-  "devDependencies": {
-    "@types/crypto-js": "^4.2.2",
-    "@types/node-cron": "^3.0.11"
+    "socket.io": "^4.8.1",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.52.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
