@@ -25,6 +25,7 @@ export const MB = 1048576;
 
 export const serversByRegion = {
   usw: "https://usw.streamthing.dev",
+  us3: "https://us3.streamthing.dev",
 };
 
 export const initialUsage = {
