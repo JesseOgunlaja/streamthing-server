@@ -1,1 +1,1 @@
-streamthing WebSocket Server
+My WebSocket Server for streamthing using uWebSockets.js
