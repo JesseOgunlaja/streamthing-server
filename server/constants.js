@@ -24,7 +24,7 @@ export const planLimits = {
 export const MB = 1048576;
 
 export const serversByRegion = {
-  eus: "http://localhost:5000",
+  usw: "https://usw.streamthing.dev",
 };
 
 export const initialUsage = {

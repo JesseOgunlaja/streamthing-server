@@ -78,16 +78,10 @@ export async function getUserConnections(user, appState) {
   return serverData.reduce((total, data) => total + data.usage.connections, 0);
 }
 
-export function sendJsonResponse(res, data, statusCode = 200) {
-  if (res.aborted) return;
-
-  res.cork(() => {
-    res
-      .writeStatus(statusCode.toString())
-      .writeHeader("Content-Type", "application/json")
-      .writeHeader("Access-Control-Allow-Origin", "*")
-      .end(JSON.stringify(data));
-  });
+export function sendJsonResponse(res, data, status = 200) {
+  res.writeStatus(`${status}`);
+  res.writeHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(data));
 }
 
 export function sendWs(ws, data) {

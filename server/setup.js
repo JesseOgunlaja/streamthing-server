@@ -20,7 +20,7 @@ export function setupServer(state) {
 
   app.any("/*", (res) => {
     res.writeHeader("Access-Control-Allow-Origin", "*");
-    return false;
+    return res.end();
   });
 
   cron.schedule("*/30 * * * *", () => {

@@ -37,7 +37,7 @@ export function setupRoutes(appState) {
     return sendJsonResponse(res, { message: "User cache reset" });
   });
 
-  app.post("/ping", async (res, req) => {
+  app.get("/ping", async (res) => {
     return sendJsonResponse(res, { message: "Successful ping" });
   });
 }
