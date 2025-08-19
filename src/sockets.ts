@@ -83,9 +83,10 @@ async function emitMessage(
   message: string
 ) {
   const { usage, app } = appState;
-  if (!event || message === undefined) throw new Error("Invalid params");
 
   const user = await fetchUser(appState, server.owner);
+  if (!user) throw new Error("User not found");
+
   const userUsageData = usage[user.email] || initialUsage;
   const userPlanLimits = planLimits[user.plan];
 
@@ -130,6 +131,8 @@ async function handleAuthentication(
     if (id !== decodedToken.id) throw Error;
 
     const user = await fetchUser(appState, server.owner);
+    if (!user) throw Error;
+
     const userConnections = await getUserConnections(user, appState);
     if (userConnections >= planLimits[user.plan].connections) {
       throw new Error("Connection limit exceeded");

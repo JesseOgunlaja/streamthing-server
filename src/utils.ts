@@ -1,6 +1,6 @@
 import { Redis } from "@upstash/redis";
 import { decodeJwt, jwtVerify } from "jose";
-import { HttpResponse } from "uWebSockets.js";
+import { HttpRequest, HttpResponse } from "uWebSockets.js";
 import { initialUsage, serversByRegion } from "./constants.js";
 import type { AppState, Server, User, WS } from "./types";
 
@@ -13,19 +13,24 @@ export async function fetchFromCache<T extends "usersCache" | "serversCache">(
   state: AppState,
   key: T,
   dataKey: string
-): Promise<T extends "usersCache" ? User : Server> {
-  const cache = state[key];
-  if (cache[dataKey]) {
-    return cache[dataKey] as T extends "usersCache" ? User : Server;
+): Promise<null | (T extends "usersCache" ? User : Server)> {
+  try {
+    type ReturnType = T extends "usersCache" ? User : Server;
+    const cache = state[key];
+    console.log(cache);
+    console.log(dataKey);
+    if (cache[dataKey]) return cache[dataKey] as ReturnType;
+
+    const fetchedValue = (await redis.json.get(dataKey)) as ReturnType;
+    if (!fetchedValue) return null;
+
+    cache[dataKey] = fetchedValue;
+    return fetchedValue;
+  } catch (err) {
+    console.log("HI");
+    console.log(err);
+    throw err;
   }
-
-  const fetchedValue = (await redis.json.get(dataKey)) as T extends "usersCache"
-    ? User
-    : Server;
-  if (!fetchedValue) throw new Error("Invalid credentials");
-
-  cache[dataKey] = fetchedValue;
-  return fetchedValue;
 }
 
 export function updateServerUsage(
@@ -162,4 +167,23 @@ function copyArrayBuffer(arrayBuffer: ArrayBuffer): ArrayBuffer {
   const copy = new ArrayBuffer(arrayBuffer.byteLength);
   new Uint8Array(copy).set(new Uint8Array(arrayBuffer));
   return copy;
+}
+
+export function wrapAsyncRoute(
+  handler: (res: HttpResponse, req: HttpRequest) => void
+) {
+  return (res: HttpResponse, req: HttpRequest) => {
+    let aborted = false;
+    res.onAborted(() => {
+      aborted = true;
+    });
+
+    // Call your async handler
+    Promise.resolve(handler(res, req)).catch((err) => {
+      if (!aborted) {
+        console.error(err);
+        res.writeStatus("500 Internal Server Error").end("Internal error");
+      }
+    });
+  };
 }
