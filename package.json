@@ -4,14 +4,14 @@
   "description": "A websocket server built with fastify",
   "main": "server/index.js",
   "scripts": {
-    "start": "node server/index.js",
-    "watchStart": "nodemon server/index.js"
+    "build": "tsc",
+    "dev": "nodemon -w src --no-warnings -x 'node --loader ts-node/esm' -q src/index.ts",
+    "start": "node dist/index.js"
   },
   "type": "module",
   "author": "Jesse Ogunlaja",
   "license": "ISC",
   "dependencies": {
-    "@hono/node-server": "^1.13.7",
     "@upstash/redis": "^1.34.3",
     "dotenv": "^16.4.7",
     "jose": "^5.9.6",
@@ -23,6 +23,9 @@
     "utf-8-validate": "^6.0.5"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@types/node": "^24.3.0",
+    "@types/node-cron": "^3.0.11",
+    "nodemon": "^3.2.3",
+    "ts-node-dev": "^2.0.0"
   }
 }
