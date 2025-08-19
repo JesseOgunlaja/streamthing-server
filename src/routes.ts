@@ -1,6 +1,6 @@
-import { initialUsage } from "./constants.ts";
+import { initialUsage } from "./constants";
 import type { AppState } from "./types";
-import { fetchServer, sendJsonResponse } from "./utils.ts";
+import { fetchServer, sendJsonResponse } from "./utils";
 
 export function setupRoutes(appState: AppState): void {
   const { app, usage } = appState;

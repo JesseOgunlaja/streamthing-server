@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { initialUsage, planLimits } from "./constants.ts";
+import { initialUsage, planLimits } from "./constants";
 import type { AppState, Server, WS } from "./types";
 import {
   decodeJWT,
@@ -10,7 +10,7 @@ import {
   sendJsonResponse,
   sendWs,
   updateServerUsage,
-} from "./utils.ts";
+} from "./utils";
 
 export function setupSocketHandlers(appState: AppState): void {
   const { app, activeConnections } = appState;

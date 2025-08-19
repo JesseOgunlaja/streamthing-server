@@ -1,8 +1,8 @@
 import "dotenv/config";
 import uWS from "uWebSockets.js";
-import { setupRoutes } from "./routes.ts";
-import { setupServer } from "./setup.ts";
-import { setupSocketHandlers } from "./sockets.ts";
+import { setupRoutes } from "./routes";
+import { setupServer } from "./setup";
+import { setupSocketHandlers } from "./sockets";
 import type { AppState } from "./types";
 
 const appState: AppState = {

@@ -7,8 +7,6 @@
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": false,
     "resolveJsonModule": true,
