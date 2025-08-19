@@ -1,7 +1,7 @@
 import { Redis } from "@upstash/redis";
 import { decodeJwt, jwtVerify } from "jose";
 import { HttpResponse } from "uWebSockets.js";
-import { initialUsage, serversByRegion } from "./constants";
+import { initialUsage, serversByRegion } from "./constants.js";
 import type { AppState, Server, User, WS } from "./types";
 
 export const redis = new Redis({

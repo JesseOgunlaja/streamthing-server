@@ -1,6 +1,6 @@
-import { initialUsage } from "./constants";
+import { initialUsage } from "./constants.js";
 import type { AppState } from "./types";
-import { fetchServer, sendJsonResponse } from "./utils";
+import { fetchServer, sendJsonResponse } from "./utils.js";
 
 export function setupRoutes(appState: AppState): void {
   const { app, usage } = appState;

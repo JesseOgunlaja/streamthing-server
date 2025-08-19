@@ -5,7 +5,7 @@
   "main": "server/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon -w src -e ts -q -x \"node --no-warnings --loader ts-node/esm --experimental-specifier-resolution=node src/index.ts\"",
+    "dev": "nodemon -w src -q --no-warnings -x 'node --loader ts-node/esm' --no-warnings -q src/index.ts",
     "start": "node dist/index.js"
   },
   "type": "module",
