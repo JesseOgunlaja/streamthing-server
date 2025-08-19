@@ -14,23 +14,15 @@ export async function fetchFromCache<T extends "usersCache" | "serversCache">(
   key: T,
   dataKey: string
 ): Promise<null | (T extends "usersCache" ? User : Server)> {
-  try {
-    type ReturnType = T extends "usersCache" ? User : Server;
-    const cache = state[key];
-    console.log(cache);
-    console.log(dataKey);
-    if (cache[dataKey]) return cache[dataKey] as ReturnType;
+  type ReturnType = T extends "usersCache" ? User : Server;
+  const cache = state[key];
+  if (cache[dataKey]) return cache[dataKey] as ReturnType;
 
-    const fetchedValue = (await redis.json.get(dataKey)) as ReturnType;
-    if (!fetchedValue) return null;
+  const fetchedValue = (await redis.json.get(dataKey)) as ReturnType;
+  if (!fetchedValue) return null;
 
-    cache[dataKey] = fetchedValue;
-    return fetchedValue;
-  } catch (err) {
-    console.log("HI");
-    console.log(err);
-    throw err;
-  }
+  cache[dataKey] = fetchedValue;
+  return fetchedValue;
 }
 
 export function updateServerUsage(
