@@ -4,7 +4,7 @@
   "description": "A websocket server built with fastify",
   "main": "server/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.prod.json",
     "dev": "nodemon -w src -x 'node --loader ts-node/esm' --no-warnings -q src/index.ts",
     "start": "node dist/index.js"
   },
