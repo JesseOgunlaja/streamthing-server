@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { initialUsage, planLimits } from "./constants.ts";
-import type { AppState, Server, WS } from "./types.ts";
+import type { AppState, Server, WS } from "./types";
 import {
   decodeJWT,
   fetchServer,

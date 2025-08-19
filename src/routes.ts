@@ -1,5 +1,5 @@
 import { initialUsage } from "./constants.ts";
-import type { AppState } from "./types.ts";
+import type { AppState } from "./types";
 import { fetchServer, sendJsonResponse } from "./utils.ts";
 
 export function setupRoutes(appState: AppState): void {

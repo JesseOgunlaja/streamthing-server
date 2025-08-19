@@ -2,7 +2,7 @@ import { Redis } from "@upstash/redis";
 import { decodeJwt, jwtVerify } from "jose";
 import { HttpResponse } from "uWebSockets.js";
 import { initialUsage, serversByRegion } from "./constants.ts";
-import type { AppState, Server, User, WS } from "./types.ts";
+import type { AppState, Server, User, WS } from "./types";
 
 export const redis = new Redis({
   url: process.env.REDIS_URL,

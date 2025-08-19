@@ -3,7 +3,7 @@ import uWS from "uWebSockets.js";
 import { setupRoutes } from "./routes.ts";
 import { setupServer } from "./setup.ts";
 import { setupSocketHandlers } from "./sockets.ts";
-import type { AppState } from "./types.ts";
+import type { AppState } from "./types";
 
 const appState: AppState = {
   serversCache: {},

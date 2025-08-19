@@ -5,7 +5,7 @@
   "main": "server/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon -w src --no-warnings -x 'node --loader ts-node/esm' -q src/index.ts",
+    "dev": "nodemon -w src -x 'node --loader ts-node/esm' --no-warnings -q src/index.ts",
     "start": "node dist/index.js"
   },
   "type": "module",
@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "@types/node-cron": "^3.0.11",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2"
   }
 }
