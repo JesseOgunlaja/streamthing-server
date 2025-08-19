@@ -1,5 +1,7 @@
 import type { TemplatedApp, WebSocket } from "uWebSockets.js";
 
+export type Region = "usw" | "us3" | "eus";
+
 export interface Usage {
   connections: number;
   messages: number;
@@ -19,7 +21,7 @@ export interface Server {
   id: string;
   password: string;
   owner: string;
-  region: "usw" | "us3";
+  region: Region;
 }
 
 export interface AppState {
@@ -44,7 +46,7 @@ declare global {
       PORT?: string;
       REDIS_URL: string;
       REDIS_TOKEN: string;
-      REGION: "usw" | "us3";
+      REGION: Region;
     }
   }
 }
