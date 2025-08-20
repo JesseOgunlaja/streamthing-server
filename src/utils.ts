@@ -39,8 +39,10 @@ export function updateServerUsage(
   const newValue = serverUsage[usageType] + increment;
   serverUsage[usageType] = newValue;
 
-  if (usageType === "connections" && newValue > serverUsage.peakConnections) {
-    serverUsage.peakConnections = newValue;
+  if (usageType === "connections") {
+    if (newValue > serverUsage.peakConnections)
+      serverUsage.peakConnections = newValue;
+    if (increment === 1) serverUsage.connectionsToday += 1;
   }
   if (usageType === "dataTransfer" && increment > serverUsage.maxMessageSize) {
     serverUsage.maxMessageSize = increment;
