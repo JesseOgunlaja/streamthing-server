@@ -10,7 +10,6 @@ const appState: AppState = {
   usersCache: {},
   usage: {},
   app: uWS.App(),
-  activeConnections: new Map<string, any>(),
 };
 
 setupServer(appState);

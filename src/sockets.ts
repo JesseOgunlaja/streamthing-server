@@ -1,6 +1,6 @@
-import { randomUUID } from "crypto";
+import { HttpRequest } from "uWebSockets.js";
 import { initialUsage, planLimits } from "./constants.js";
-import type { AppState, Server, WS } from "./types";
+import type { AppState, WS } from "./types";
 import {
   decodeJWT,
   fetchServer,
@@ -10,105 +10,96 @@ import {
   sendJsonResponse,
   sendWs,
   updateServerUsage,
+  wrapAsyncRoute,
 } from "./utils.js";
 
 export function setupSocketHandlers(appState: AppState): void {
-  const { app, activeConnections } = appState;
+  const { app } = appState;
 
   app.ws("/*", {
     maxPayloadLength: 16 * 1024 * 1024,
     idleTimeout: 120,
     maxBackpressure: 64 * 1024,
 
-    open: (ws: WS) => {
-      const data = ws.getUserData();
-      data.authenticated = false;
+    upgrade: (res, req: HttpRequest, context) => {
+      const serverId = new URLSearchParams(req.getQuery()).get("id") || "";
 
-      const connectionId = randomUUID();
-      data.connectionId = connectionId;
-      activeConnections.set(connectionId, ws);
-      sendWs(ws, { type: "connection_id", id: connectionId });
+      res.upgrade(
+        { serverId, authenticated: false },
+        req.getHeader("sec-websocket-key"),
+        req.getHeader("sec-websocket-protocol"),
+        req.getHeader("sec-websocket-extensions"),
+        context
+      );
     },
 
     message: async (ws: WS, message: ArrayBuffer) => {
       try {
         const data = JSON.parse(Buffer.from(message).toString());
-
         if (data.type === "authenticate") {
           handleAuthentication(ws, data.token, appState);
-        } else if (data.type === "emit_event") {
-          const { server, roomKey } = ws.getUserData();
-          const { event, message: payload } = data.data;
-
-          await emitMessage(appState, server, roomKey, event, payload);
         }
       } catch (error) {
-        sendWs(ws, { type: "error", message: "Invalid message format" });
+        sendWs(ws, {
+          type: "error",
+          message:
+            error instanceof Error ? error.message : "Invalid message format",
+        });
       }
     },
 
     close: (ws: WS) => {
-      const { connectionId, authenticated, server } = ws.getUserData();
-      if (connectionId) activeConnections.delete(connectionId);
-      if (authenticated && server)
-        updateServerUsage(appState, server.id, "connections", -1);
+      const { authenticated, serverId } = ws.getUserData();
+      if (authenticated) {
+        updateServerUsage(appState, serverId, "connections", -1);
+      }
     },
   });
 
-  app.post("/emit-message", async (res) => {
-    try {
-      const body = await parseJsonBody(res);
-      const { id, password, channel, event, message } = body;
-      const roomKey = `${id}-${channel}`;
+  app.post(
+    "/emit-message",
+    wrapAsyncRoute(async (res) => {
+      try {
+        const { usage, app } = appState;
+        const { id, password, channel, event, message } = await parseJsonBody(
+          res
+        );
 
-      const server = await fetchServer(appState, id);
-      if (!server || server.password !== password) {
-        throw new Error("Invalid credentials");
+        const server = await fetchServer(appState, id);
+        if (!server || server.password !== password) {
+          throw new Error("Invalid credentials");
+        }
+
+        const user = await fetchUser(appState, server.owner);
+        if (!user) throw new Error("User not found");
+
+        const userUsageData = usage[user.email] || initialUsage;
+        const userPlanLimits = planLimits[user.plan];
+        if (userUsageData.messages >= userPlanLimits.messages) {
+          throw new Error("Message limit exceeded");
+        }
+
+        const messageSize = JSON.stringify(message).length;
+        updateServerUsage(appState, server.id, "dataTransfer", messageSize);
+        updateServerUsage(appState, server.id, "messages");
+
+        app.publish(
+          `${id}-${channel}`,
+          JSON.stringify({
+            type: "message",
+            event,
+            payload: message,
+          })
+        );
+
+        sendJsonResponse(res, { message: "Message emitted successfully" });
+      } catch (error) {
+        sendJsonResponse(
+          res,
+          { error: error instanceof Error ? error.message : "Unknown error" },
+          400
+        );
       }
-
-      await emitMessage(appState, server, roomKey, event, message);
-
-      sendJsonResponse(res, { message: "Message emitted successfully" });
-    } catch (error) {
-      sendJsonResponse(
-        res,
-        { error: error instanceof Error ? error.message : "Unknown error" },
-        400
-      );
-    }
-  });
-}
-
-async function emitMessage(
-  appState: AppState,
-  server: Server,
-  roomKey: string,
-  event: string,
-  message: string
-) {
-  const { usage, app } = appState;
-
-  const user = await fetchUser(appState, server.owner);
-  if (!user) throw new Error("User not found");
-
-  const userUsageData = usage[user.email] || initialUsage;
-  const userPlanLimits = planLimits[user.plan];
-
-  if (userUsageData.messages >= userPlanLimits.messages) {
-    throw new Error("Message limit exceeded");
-  }
-
-  const messageSize = JSON.stringify(message).length;
-
-  updateServerUsage(appState, server.id, "dataTransfer", messageSize);
-  updateServerUsage(appState, server.id, "messages");
-
-  app.publish(
-    roomKey,
-    JSON.stringify({
-      type: "message",
-      event,
-      payload: message,
     })
   );
 }
@@ -123,16 +114,10 @@ async function handleAuthentication(
   try {
     if (!token) throw Error;
 
-    const decodedToken = await decodeJWT(token);
-    if (typeof decodedToken?.id !== "string") throw Error;
+    const server = await fetchServer(appState, data.serverId);
+    if (!server) throw Error;
 
-    const server = await fetchServer(appState, decodedToken.id);
-    if (!server || server.region !== process.env.REGION) throw Error;
-
-    const JWT_KEY = `${data.connectionId}-${server.password}`;
-    const { id, channel } = await decodeJWT(token, JWT_KEY);
-
-    if (id !== decodedToken.id) throw Error;
+    const { channel } = await decodeJWT(token, server.password);
 
     const user = await fetchUser(appState, server.owner);
     if (!user) throw Error;
@@ -142,17 +127,15 @@ async function handleAuthentication(
       throw new Error("Connection limit exceeded");
     }
 
-    updateServerUsage(appState, id, "connections");
+    updateServerUsage(appState, data.serverId, "connections");
 
+    data.roomKey = `${data.serverId}-${channel}`;
     data.server = server;
     data.authenticated = true;
-
-    const roomKey = `${id}-${channel}`;
-    data.roomKey = roomKey;
-    ws.subscribe(roomKey);
+    ws.subscribe(data.roomKey);
   } catch (error) {
     sendWs(ws, {
-      type: error instanceof Error ? "error" : "auth_error",
+      type: "error",
       message: error instanceof Error ? error.message : "Invalid credentials",
     });
   }

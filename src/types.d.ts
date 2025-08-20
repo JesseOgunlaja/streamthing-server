@@ -29,14 +29,13 @@ export interface AppState {
   serversCache: Record<string, Server>;
   usersCache: Record<string, User>;
   usage: Record<string, Usage>;
-  activeConnections: Map<string, WS>;
 }
 
 export type WS = WebSocket<{
   authenticated: boolean;
   server: Server;
+  serverId: string;
   roomKey: string;
-  connectionId: string;
 }>;
 
 declare global {
