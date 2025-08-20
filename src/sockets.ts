@@ -69,8 +69,12 @@ export function setupSocketHandlers(appState: AppState): void {
       await emitMessage(appState, server, roomKey, event, message);
 
       sendJsonResponse(res, { message: "Message emitted successfully" });
-    } catch (error: unknown) {
-      sendJsonResponse(res, { error: error || "Unknown error" }, 400);
+    } catch (error) {
+      sendJsonResponse(
+        res,
+        { error: error instanceof Error ? error.message : "Unknown error" },
+        400
+      );
     }
   });
 }
@@ -148,8 +152,8 @@ async function handleAuthentication(
     ws.subscribe(roomKey);
   } catch (error) {
     sendWs(ws, {
-      type: error ? "error" : "auth_error",
-      message: error || "Invalid credentials",
+      type: error instanceof Error ? "error" : "auth_error",
+      message: error instanceof Error ? error.message : "Invalid credentials",
     });
   }
 }
