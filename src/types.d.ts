@@ -13,7 +13,7 @@ export interface Usage {
 
 export interface User {
   email: string;
-  plan: "Hobby" | "Startup" | "Premium" | "Enterprise";
+  plan: "Hobby" | "Startup" | "Premium";
   servers: Server[];
 }
 
