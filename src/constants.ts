@@ -7,17 +7,12 @@ export const planLimits = {
     maxMessageSize: 15,
   },
   Startup: {
-    connections: 2,
-    messages: 500000,
-    maxMessageSize: 15,
-  },
-  Premium: {
-    connections: 25000,
+    connections: 10000,
     messages: 1000000,
     maxMessageSize: 15,
   },
-  Enterprise: {
-    connections: 100000,
+  Premium: {
+    connections: 50000,
     messages: 5000000,
     maxMessageSize: 15,
   },
