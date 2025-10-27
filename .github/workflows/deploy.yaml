@@ -56,7 +56,7 @@ jobs:
           username: root
           password: ${{ secrets.SSH_PASSWORD }}
           source: "docker-compose.yaml"
-          target: "/opt/streamthing/docker-compose.yaml"
+          target: "/opt/streamthing"
 
       - name: Deploy to ${{ matrix.name }}
         uses: appleboy/ssh-action@v1
@@ -66,4 +66,4 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd /opt/streamthing
-            docker-compose up -d --force-recreate --pull always server
+            docker compose up -d --force-recreate --pull always server
