@@ -1,0 +1,65 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  IMAGE_NAME: ghcr.io/JesseOgunlaja/streamthing
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: eu-central
+            host: ${{ vars.EU_CENTRAL_HOST }}
+          - name: us-east
+            host: ${{ vars.US_EAST_HOST }}
+          - name: us-west
+            host: ${{ vars.US_WEST_HOST }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Copy docker-compose.yaml to ${{ matrix.name }}
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ matrix.host }}
+          username: root
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: "docker-compose.yaml"
+          target: "/opt/streamthing/docker-compose.yaml"
+
+      - name: Deploy to ${{ matrix.name }}
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ matrix.host }}
+          username: root
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd /opt/streamthing
+            docker-compose up -d --force-recreate --pull always server
