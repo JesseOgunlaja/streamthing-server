@@ -5,7 +5,7 @@ on:
     branches: ["main"]
 
 env:
-  IMAGE_NAME: ghcr.io/JesseOgunlaja/streamthing
+  IMAGE_NAME: ghcr.io/jesseogunlaja/streamthing
 
 
 jobs:
