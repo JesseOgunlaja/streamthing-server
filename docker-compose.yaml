@@ -1,0 +1,23 @@
+services:
+  server:
+    image: ghcr.io/JesseOgunlaja/streamthing:latest
+    ports:
+      - "80:5000"
+    environment:
+      - PORT=${PORT}
+      - UPSTASH_REDIS_URL=${UPSTASH_REDIS_URL}
+      - UPSTASH_REDIS_TOKEN=${UPSTASH_REDIS_TOKEN}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REGION=${REGION}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:8.2-alpine
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - redis-db:/data
+
+volumes:
+  redis-db:
