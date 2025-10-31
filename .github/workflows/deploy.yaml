@@ -35,7 +35,7 @@ jobs:
           version: latest
 
       - name: Start docker compose
-        run: docker-compose -f docker-compose.staging.yaml up -d
+        run: docker compose -f docker-compose.staging.yaml up -d
 
       - name: Run test
         run: npm run test
@@ -47,7 +47,7 @@ jobs:
 
       - name: Stop docker compose
         if:  always()
-        run: docker-compose down
+        run: docker compose down
 
       - name: Promote staged to latest
         if: success()
