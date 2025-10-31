@@ -1,0 +1,16 @@
+services:
+  server:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=${PORT}
+      - UPSTASH_REDIS_URL=${UPSTASH_REDIS_URL}
+      - UPSTASH_REDIS_TOKEN=${UPSTASH_REDIS_TOKEN}
+      - REGION=${REGION}
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:8.2-alpine
+    container_name: redis
