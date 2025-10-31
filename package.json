@@ -6,7 +6,8 @@
 	"scripts": {
 		"build": "tsc",
 		"dev": "nodemon -L -w src -q --no-warnings -x 'node --loader ts-node/esm' -q src/index.ts",
-		"start": "node dist/index.js"
+		"start": "node dist/index.js",
+		"test": "node test.js"
 	},
 	"type": "module",
 	"author": "Jesse Ogunlaja",
