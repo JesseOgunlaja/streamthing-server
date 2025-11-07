@@ -1,8 +1,24 @@
+import fs from "fs";
+import path from "path";
 import type { AppState } from "./types.js";
 import { env, getUsage, sendJsonResponse, wrapAsyncRoute } from "./utils.js";
 
 export function setupRoutes(appState: AppState) {
 	const { app } = appState;
+
+	app.get("/openapi.yaml", (res) => {
+		const filePath = path.join(process.cwd(), "openapi.yaml");
+		fs.readFile(filePath, "utf8", (err, data) => {
+			res.cork(() => {
+				res.writeStatus(err ? "500" : "200");
+				res.writeHeader(
+					"Content-Type",
+					err ? "text/plain" : "application/yaml",
+				);
+				res.end(err ? "Failed to read OpenAPI file" : data);
+			});
+		});
+	});
 
 	app.get(
 		"/get-server/:id",
