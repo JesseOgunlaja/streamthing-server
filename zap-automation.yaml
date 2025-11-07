@@ -4,19 +4,22 @@ env:
       urls:
         - "http://localhost:5000"
 
-  parameters:
-  failOnError: true
-  failOnWarning: false
-  globalHttpHeaders:
-    - name: "Authorization"
-      value: "${ADMIN_PASSWORD}"
-
 jobs:
   - type: openapi
     parameters:
       apiFile: "/zap/wrk/openapi.yaml"
       targetUrl: "http://localhost:5000"
       context: "api-context"
+
+  - type: replacer
+    parameters:
+      deleteAllRules: true
+      rules:
+        - description: "Add auth header"
+          matchType: "req_header"
+          matchString: "Authorization:"
+          replacementString: "Authorization: ${ADMIN_PASSWORD}"
+          tokenProcessing: true
 
   - type: passiveScan-wait
 
