@@ -3,15 +3,13 @@ env:
     - name: "api-context"
       urls:
         - "http://localhost:5000"
-      authentication:
-        method: "httpHeader"
-        parameters:
-          headerName: "Authorization"
-          headerValue: "${ADMIN_PASSWORD}"
 
   parameters:
-    failOnError: true
-    failOnWarning: false
+  failOnError: true
+  failOnWarning: false
+  globalHttpHeaders:
+    - name: "Authorization"
+      value: "${ADMIN_PASSWORD}"
 
 jobs:
   - type: openapi
@@ -19,14 +17,10 @@ jobs:
       apiFile: "/zap/wrk/openapi.yaml"
       targetUrl: "http://localhost:5000"
       context: "api-context"
-      importPolicy: "AddToContext"
 
   - type: passiveScan-wait
-    parameters:
-      maxDuration: 2
 
   - type: activeScan
     parameters:
       context: "api-context"
-      policy: "API-scan"
-      maxDuration: 10
+      policy: "Default policy"
