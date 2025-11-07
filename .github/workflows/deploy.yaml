@@ -8,15 +8,38 @@ env:
   IMAGE_NAME: ghcr.io/jesseogunlaja/streamthing
 
 jobs:
-  test:
+  SAST:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install Semgrep
+        run: python -m pip install semgrep
+
+      - name: Login to Semgrep
+        run: semgrep login
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: Run Semgrep (SAST)
+        run: semgrep ci --code --include=src --no-suppress-errors --verbose
+
+  DAST:
+    runs-on: ubuntu-latest
+    needs: SAST
     env:
       PORT: 5000
       UPSTASH_REDIS_URL: ${{ secrets.UPSTASH_REDIS_URL }}
       UPSTASH_REDIS_TOKEN: ${{ secrets.UPSTASH_REDIS_TOKEN }}
       REGION: ${{ vars.TEST_SERVER_REGION }}
+
     steps:
       - uses: actions/checkout@v5
+
       - uses: actions/setup-node@v6
         with:
           node-version: '25'
@@ -27,12 +50,20 @@ jobs:
         run: echo "version=$(npm view streamthing version)" >> $GITHUB_OUTPUT
 
       - name: Install dependencies
-        run: npm install && npm install streamthing@${{ steps.version.outputs.version}}
+        run: npm install && npm install streamthing@${{ steps.version.outputs.version }}
 
       - name: Start docker compose
         run: docker compose -f docker-compose.staging.yaml up -d
 
-      - name: Run test
+      - name: DAST test (OWASP ZAP)
+        run: |
+          docker run --rm --network host \
+          -v $(pwd):/zap/wrk:rw \
+          -e ADMIN_PASSWORD="${{ secrets.ADMIN_PASSWORD }}" \
+          ghcr.io/zaproxy/zaproxy:stable \
+          zap.sh -cmd -autorun /zap/wrk/zap-automation.yaml
+
+      - name: Integration test
         run: npm run test
         env:
           STREAMTHING_CUSTOM_HOST: ws://localhost:5000
@@ -41,19 +72,17 @@ jobs:
           SERVER_REGION: ${{ vars.TEST_SERVER_REGION }}
 
       - name: Stop docker compose
-        if:  always()
+        if: always()
         run: docker compose down
 
       - name: Promote staged to latest
-        if: success()
-        run: |
-          npm dist-tag add streamthing@${{ steps.version.outputs.version }} latest
+        run: npm dist-tag add streamthing@${{ steps.version.outputs.version }} latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: DAST
     permissions:
       contents: read
       packages: write

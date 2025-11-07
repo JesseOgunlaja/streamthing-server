@@ -1,0 +1,44 @@
+openapi: 3.0.3
+info:
+  title: Streamthing Server
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+components:
+  securitySchemes:
+    adminAuth:
+      type: apiKey
+      in: header
+      name: authorization
+security:
+  - adminAuth: []
+paths:
+  /get-server/{id}:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "36471905825318472910"
+
+  /reset-server-cache/{id}:
+    post:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "36471905825318472910"
+
+  /reset-user-cache/{id}:
+    post:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "36471905825318472910"
