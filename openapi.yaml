@@ -2,19 +2,75 @@ openapi: 3.0.3
 info:
   title: Streamthing Server
   version: 1.0.0
+
 servers:
   - url: http://localhost:5000
+
 components:
   securitySchemes:
     adminAuth:
       type: apiKey
       in: header
       name: authorization
+
+  schemas:
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: "Successful ping"
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      examples:
+        InvalidParams:
+          value:
+            message: "Invalid params"
+        Unauthorized:
+          value:
+            message: "Unauthorized"
+
+    Usage:
+      type: object
+      properties:
+        connections:
+          type: integer
+        messages:
+          type: integer
+        peakConnections:
+          type: integer
+        connectionsToday:
+          type: integer
+        dataTransfer:
+          type: integer
+        maxMessageSize:
+          type: integer
+      example:
+        connections: 10
+        messages: 120
+        peakConnections: 25
+        connectionsToday: 7
+        dataTransfer: 1048576
+        maxMessageSize: 2048
+
+    GetServerResponse:
+      type: object
+      properties:
+        usage:
+          $ref: "#/components/schemas/Usage"
+
 security:
   - adminAuth: []
+
 paths:
   /get-server/{id}:
     get:
+      summary: Get server usage by ID
       parameters:
         - name: id
           in: path
@@ -22,9 +78,31 @@ paths:
           schema:
             type: string
           example: "36471905825318472910"
+      security:
+        - adminAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetServerResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /reset-server-cache/{id}:
     post:
+      summary: Reset a server's cache
       parameters:
         - name: id
           in: path
@@ -32,9 +110,33 @@ paths:
           schema:
             type: string
           example: "36471905825318472910"
+      security:
+        - adminAuth: []
+      responses:
+        "200":
+          description: Server cache reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+              example:
+                message: "Server cache reset"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /reset-user-cache/{id}:
     post:
+      summary: Reset a user’s cache
       parameters:
         - name: id
           in: path
@@ -42,3 +144,39 @@ paths:
           schema:
             type: string
           example: "36471905825318472910"
+      security:
+        - adminAuth: []
+      responses:
+        "200":
+          description: User cache reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+              example:
+                message: "User cache reset"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ping:
+    get:
+      summary: Health check endpoint
+      responses:
+        "200":
+          description: Successful ping
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+              example:
+                message: "Successful ping"
