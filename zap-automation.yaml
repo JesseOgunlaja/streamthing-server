@@ -14,16 +14,15 @@ jobs:
   - type: replacer
     parameters:
       deleteAllRules: true
-      rules:
-        - description: "Add auth header"
-          matchType: "req_header"
-          matchString: "Authorization:"
-          replacementString: "Authorization: ${ADMIN_PASSWORD}"
-          tokenProcessing: true
+    rules:
+      - description: "Add auth header"
+        matchType: "req_header"
+        matchString: "Authorization:"
+        replacementString: "Authorization: ${ADMIN_PASSWORD}"
+        tokenProcessing: true
 
   - type: passiveScan-wait
 
   - type: activeScan
     parameters:
       context: "api-context"
-      policy: "Default policy"
