@@ -6,17 +6,13 @@ import { env, getUsage, sendJsonResponse, wrapAsyncRoute } from "./utils.js";
 export function setupRoutes(appState: AppState) {
 	const { app } = appState;
 
+	const filePath = path.join(process.cwd(), "openapi.yaml");
+	const data = fs.readFileSync(filePath, "utf8");
 	app.get("/openapi.yaml", (res) => {
-		const filePath = path.join(process.cwd(), "openapi.yaml");
-		fs.readFile(filePath, "utf8", (err, data) => {
-			res.cork(() => {
-				res.writeStatus(err ? "500" : "200");
-				res.writeHeader(
-					"Content-Type",
-					err ? "text/plain" : "application/yaml",
-				);
-				res.end(err ? "Failed to read OpenAPI file" : data);
-			});
+		res.cork(() => {
+			res.writeStatus("200");
+			res.writeHeader("Content-Type", "application/yaml");
+			res.end(data);
 		});
 	});
 
